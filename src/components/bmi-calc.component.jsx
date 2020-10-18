@@ -1,4 +1,5 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
+
 import {
   FormControlLabel,
   Switch,
@@ -8,6 +9,7 @@ import {
   TextField,
   Card,
   CardContent,
+  Button
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -38,16 +40,27 @@ const useStyles = makeStyles({
   debug: {
     border: "2px solid red",
   },
+  btn:{
+    marginLeft: '37%'
+  }
 });
 
-export default function BmiCalc() {
-  const [measurment, setMeasurment] = React.useState({
-    standard: true,
-  });
 
-  const handleChange = (event) => {
-    setMeasurment({ ...measurment, [event.target.name]: event.target.checked });
+export default function BmiCalc() {
+  const [userHeight, setUserHeight] = useState('');
+  const [userWeight, setUserWeight] = useState('');
+
+  const [measurment, setMeasurment] = React.useState(true);
+
+  const handleToggle = () => {
+    setMeasurment((prev) => !prev);
   };
+
+  const CalcBMI = (w, h) => {
+    var result = w / Math.pow(h, 2);
+    return result;
+  }
+  
 
   const classes = useStyles();
 
@@ -55,15 +68,15 @@ export default function BmiCalc() {
     <Card elevation={3} className={classes.root}>
       <CardHeader className={classes.header} title="Body Mass Index Calculator">
         <Typography className={classes.title} variant="h6">
-          Body Mass Index Calculator
+          BMI Calculator
         </Typography>
       </CardHeader>
-      <CardContent>
+      <CardContent direction="column" justify="center" alightitems="center">
         <FormControlLabel
           control={
             <Switch
               checked={measurment.standard}
-              onChange={handleChange}
+              onChange={handleToggle}
               name="standard"
               color="primary"
             />
@@ -82,13 +95,13 @@ export default function BmiCalc() {
         <TextField
           style={{ padding: 8 + "px" }}
           id="feet"
-          label="Feet"
+          label={measurment === false ? "Feet" : "Meters"}
           variant="outlined"
         />
         <TextField
           style={{ padding: 8 + "px" }}
           id="inches"
-          label="Inches"
+          label={measurment === false ? "Inches" : "Centimeters"}
           variant="outlined"
         />
 
@@ -103,10 +116,14 @@ export default function BmiCalc() {
         <TextField
           style={{ padding: 8 + "px" }}
           id="pounds"
-          label="Pounds"
+          label={measurment === false ? "Pounds" : "Kilograms"}
           variant="outlined"
         />
         <Divider />
+        <br></br>
+        <Button className={classes.btn} variant="contained" color="primary">
+          Calculate
+        </Button>
       </CardContent>
     </Card>
   );
