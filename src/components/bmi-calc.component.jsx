@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   FormControlLabel,
@@ -9,7 +9,8 @@ import {
   TextField,
   Card,
   CardContent,
-  Button
+  Button,
+  Grow,
 } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -40,15 +41,20 @@ const useStyles = makeStyles({
   debug: {
     border: "2px solid red",
   },
-  btn:{
-    marginLeft: '37%'
-  }
+  btn: {
+    marginLeft: "37%",
+  },
 });
 
-
 export default function BmiCalc() {
-  const [userHeight, setUserHeight] = useState('');
-  const [userWeight, setUserWeight] = useState('');
+  const [form, setState] = useState({
+    ft: "",
+    in: "",
+    cm: "",
+    lbs: "",
+    kg: "",
+    bmi: "",
+  });
 
   const [measurment, setMeasurment] = React.useState(true);
 
@@ -56,11 +62,74 @@ export default function BmiCalc() {
     setMeasurment((prev) => !prev);
   };
 
-  const CalcBMI = (w, h) => {
-    var result = w / Math.pow(h, 2);
+  const handleChange = (e) => {
+    e.persist();
+    setState(
+      (form) => ({
+        ...form,
+        [e.target.name]: e.target.value,
+      }),
+      console.log(form)
+    );
+  };
+
+  // convert inches to cm
+  const inchesToCm = (inches) => {
+    var mm = inches * 25.4;
+    var cm = mm / 10;
+    return cm.toFixed(2);
+  };
+
+  // convert lbs to kg
+  const lbsToKg = (lbs) => {
+    var kg = lbs / 2.2046;
+    return kg.toFixed(2);
+  };
+
+  const CalcBMI = () => {
+    var weight;
+    var height;
+    var heightSquared;
+    var result;
+
+    if (measurment === true) {
+      //heightSquared = Math.pow(height, 2);
+      result = weight / Math.pow(height, 2);
+    } else if (measurment === false) {
+      var feetToIn = parseFloat(form.ft * 12);
+      height = feetToIn + parseInt(form.in);
+      weight = lbsToKg(form.lbs);
+      console.log("height test " + height);
+      height = inchesToCm(height);
+
+      console.log("height " + height);
+
+      heightSquared = Math.pow(height, 2);
+      result = weight / heightSquared;
+    }
+    console.log(form);
+
+    console.log("weight", weight, "height", height);
+
+    setState({
+      bmi: result.toString(),
+      cm: height * 0.0393701,
+      kg: weight,
+    });
+
+    console.log(form);
+
+    console.log("result ", result);
+    console.log("lbs to kg ", lbsToKg(weight));
     return result;
-  }
-  
+  };
+
+  const handleCalc = (event) => {
+    event.preventDefault();
+    //var result = CalcBMI(form.weight, (form.heightMain +'.'+ form.heightDec))
+    CalcBMI();
+    console.log(form.bmi);
+  };
 
   const classes = useStyles();
 
@@ -72,58 +141,75 @@ export default function BmiCalc() {
         </Typography>
       </CardHeader>
       <CardContent direction="column" justify="center" alightitems="center">
-        <FormControlLabel
-          control={
-            <Switch
-              checked={measurment.standard}
-              onChange={handleToggle}
-              name="standard"
-              color="primary"
+        <form name="bmi" onSubmit={handleCalc}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={measurment.standard}
+                onChange={handleToggle}
+                name="standard"
+                color="primary"
+              />
+            }
+            label="Switch Measurment System"
+          />
+          <Divider />
+          <Typography
+            style={{ padding: 8 + "px" }}
+            className={classes.title}
+            variant="subtitle1"
+          >
+            Enter You Height
+          </Typography>
+
+          <TextField
+            style={{ padding: 8 + "px" }}
+            id="feet"
+            label={measurment === false ? "Feet" : "Centimeters"}
+            variant="outlined"
+            onChange={handleChange}
+            name={measurment === false ? "ft" : "cm"}
+          />
+          <Grow in={!measurment}>
+            <TextField
+              style={{ padding: 8 + "px" }}
+              id="inches"
+              label="Inches"
+              variant="outlined"
+              onChange={handleChange}
+              name="in"
             />
-          }
-          label="Standard Measurement System"
-        />
-        <Divider />
-        <Typography
-          style={{ padding: 8 + "px" }}
-          className={classes.title}
-          variant="subtitle1"
-        >
-          Enter You Height
-        </Typography>
+          </Grow>
 
-        <TextField
-          style={{ padding: 8 + "px" }}
-          id="feet"
-          label={measurment === false ? "Feet" : "Meters"}
-          variant="outlined"
-        />
-        <TextField
-          style={{ padding: 8 + "px" }}
-          id="inches"
-          label={measurment === false ? "Inches" : "Centimeters"}
-          variant="outlined"
-        />
+          <Typography
+            style={{ padding: 8 + "px" }}
+            className={classes.title}
+            variant="subtitle1"
+          >
+            Enter You Weight
+          </Typography>
 
-        <Typography
-          style={{ padding: 8 + "px" }}
-          className={classes.title}
-          variant="subtitle1"
-        >
-          Enter You Weight
-        </Typography>
-
-        <TextField
-          style={{ padding: 8 + "px" }}
-          id="pounds"
-          label={measurment === false ? "Pounds" : "Kilograms"}
-          variant="outlined"
-        />
-        <Divider />
-        <br></br>
-        <Button className={classes.btn} variant="contained" color="primary">
-          Calculate
-        </Button>
+          <TextField
+            style={{ padding: 8 + "px" }}
+            id="pounds"
+            label={measurment === false ? "Pounds" : "Kilograms"}
+            variant="outlined"
+            name={measurment === false ? "lbs" : "kg"}
+            onChange={handleChange}
+          />
+          <Divider />
+          <br></br>
+          <Button
+            type="submit"
+            form="bmi"
+            onClick={handleCalc}
+            className={classes.btn}
+            variant="contained"
+            color="primary"
+          >
+            Calculate
+          </Button>
+        </form>
       </CardContent>
     </Card>
   );
